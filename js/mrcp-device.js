@@ -6,7 +6,7 @@ class MRCPLock{
       status.style.display = 'block';
       let decoder = new TextDecoder("utf-8");
       this.led_on = parseInt(decoder.decode(event.target.value)) == 1;
-      this.button.innerHTML = this.led_on ? 'OFF' : 'ON';
+      this.button.innerHTML = this.led_on ? 'UNLOCK' : 'LOCK';
       status.style.backgroundColor = this.led_on ? '#39cc39' : '#ff5757';
   };
     try {
