@@ -1,6 +1,6 @@
 const loadPlaces = function (coords) {
     // COMMENT FOLLOWING LINE IF YOU WANT TO USE STATIC DATA AND ADD COORDINATES IN THE FOLLOWING 'PLACES' ARRAY
-    //const method = 'api';
+    const method = ''//'api';
 
     const PLACES = [
         {
@@ -59,26 +59,24 @@ window.onload = () => {
     return navigator.geolocation.getCurrentPosition(function (position) {
 
         // than use it to load from remote APIs some places nearby
-        loadPlaces(position.coords)
-            .then((places) => {
-                places.forEach((place) => {
-                    const latitude = position.coords.latitude;//place.location.lat;
-                    const longitude = position.coords.longitude;//place.location.lng;
+        places = loadPlaces(position.coords)
+        places.forEach((place) => {
+            const latitude = position.coords.latitude;//place.location.lat;
+            const longitude = position.coords.longitude;//place.location.lng;
 
-                    // add place name
-                    const text = document.createElement('a-link');
-                    text.setAttribute('gps-entity-place', `latitude: ${latitude}; longitude: ${longitude};`);
-                    text.setAttribute('title', place.name);
-                    text.setAttribute('href', 'http://www.example.com/');
-                    text.setAttribute('scale', '13 13 13');
+            // add place name
+            const text = document.createElement('a-link');
+            text.setAttribute('gps-entity-place', `latitude: ${latitude}; longitude: ${longitude};`);
+            text.setAttribute('title', place.name);
+            text.setAttribute('href', 'http://www.example.com/');
+            text.setAttribute('scale', '13 13 13');
 
-                    text.addEventListener('loaded', () => {
-                        window.dispatchEvent(new CustomEvent('gps-entity-place-loaded'))
-                    });
+            text.addEventListener('loaded', () => {
+                window.dispatchEvent(new CustomEvent('gps-entity-place-loaded'))
+            });
 
-                    scene.appendChild(text);
-                });
-            })
+            scene.appendChild(text);
+        });
     },
         (err) => console.error('Error in retrieving position', err),
         {
