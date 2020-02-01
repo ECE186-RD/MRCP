@@ -4,6 +4,7 @@
 <script src="js/arjs.min.js"></script>
 <script src="js/arelements.js"></script>
 <script src="js/mrcp-device.js"></script>
+<script src="js/location.js"></script>
 <link rel="stylesheet" type="text/css" href="css/style.css">
   <body>
     <a-scene embedded arjs='debugUIEnabled: false;detectionMode: mono_and_matrix; matrixCodeType: 4x4;' vr-mode-ui="enabled: false">
@@ -52,6 +53,7 @@
       </a-marker>
       <!--<a-entity id="mouseCursor" cursor="rayOrigin: mouse;mouseCursorStylesEnabled: false" raycaster="objects: .screen"></a-entity>-->
       <a-entity id="camera" camera></a-entity>
+      <a-camera gps-camera="minDistance: 40;" rotation-reader></a-camera>
     </a-scene>
   </body>
 </html>
