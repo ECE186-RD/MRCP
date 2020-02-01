@@ -6,18 +6,19 @@ AFRAME.registerComponent('panel', {
       this.children = [].slice.call(this.el.children);
       for(let child of this.children){
         document.body.insertBefore(child, document.body.firstChild);
+        let obj = new THREE.Object3D();
+        let offset=child.dataset.offset.split(" ");
+        obj.position.set(offset[0], offset[1], offset[2]);
+        this.parent.add(obj);
+        child.object3D = obj;
       };
     },
     tick: function(time, timeDelta){
     const canvas = this.canvas;
     const parent = this.parent;
     for(let child of this.children){
-      let obj = new THREE.Object3D();
-      let offset=child.dataset.offset.split(" ");
-      obj.position.set(offset[0], offset[1], offset[2]);
-      parent.add(obj);
-      let pos = toScreenPosition(obj, canvas);
-      scale = getScreenScale(1/parent.position.length())*4;
+      let pos = toScreenPosition(child.object3D, canvas);
+      let scale = getScreenScale(1/parent.position.length())*4;
       if(pos.x != NaN){
         child.style.transform = `translate(-50%, -50%) translate(${pos.x}px,${pos.y}px) scale(${scale})`;
       }
