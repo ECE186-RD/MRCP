@@ -40,10 +40,15 @@ div.panel{
       margin: auto;
   }
 
-  div.panel h1{
+  div.panel h1, div.panel h2{
       color: #F8F5F6;
       text-shadow: 0 0 8px #000;
   }
+
+  div.panel h2{
+      margin: 5px;
+  }
+
   div.panel button{
     color: #F8F5F6;
     background-color: rgb(34, 101, 140);

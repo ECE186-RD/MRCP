@@ -54,32 +54,31 @@ function loadPlaceFromAPIs(position) {
 
 window.onload = () => {
     const scene = document.querySelector('a-scene');
-    console.log("out function___________________")
 
     // first get current user location
     return navigator.geolocation.getCurrentPosition(function (position) {
 
         // than use it to load from remote APIs some places nearby
-        console.log("in function___________________")
-        console.log(position.coords);
-        places = loadPlaces(position.coords);
-        places.forEach((place) => {
-            const latitude = place.location.lat;
-            const longitude = place.location.lng;
+        loadPlaces(position.coords)
+            .then((places) => {
+                places.forEach((place) => {
+                    const latitude = place.location.lat;
+                    const longitude = place.location.lng;
 
-            // add place name
-            const text = document.createElement('a-box');
+                    // add place name
+                    const text = document.createElement('a-box');
             text.setAttribute('gps-entity-place', `latitude: ${latitude}; longitude: ${longitude};`);
-            text.setAttribute('color', 'yellow');
-            text.setAttribute('href', 'http://www.example.com/');
-            text.setAttribute('scale', '13 13 13');
+            text.setAttribute('position', '0 0 0');
+			text.setAttribute('scale', '10 10 10');
+            text.setAttribute('material', 'color: yellow;');
 
-            text.addEventListener('loaded', () => {
-                window.dispatchEvent(new CustomEvent('gps-entity-place-loaded'))
-            });
+                    text.addEventListener('loaded', () => {
+                        window.dispatchEvent(new CustomEvent('gps-entity-place-loaded'))
+                    });
 
-            scene.appendChild(text);
-        });
+                    scene.appendChild(text);
+                });
+            })
     },
         (err) => console.error('Error in retrieving position', err),
         {

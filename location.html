@@ -1,14 +1,22 @@
 <!doctype HTML>
 <html>
-<script src="js/aframe.min.js"></script>
-<script src="js/arjs.min.js"></script>
-<script src="js/arelements.js"></script>
-<script src="js/location.js"></script>
-<link rel="stylesheet" type="text/css" href="css/style.css">
+  <script src="js/aframe.min.js.download"></script>
+  <script src="js/aframe-ar.min.js.download"></script>
+  <!--<script src="js/arjs.min.js"></script>-->
+  <script src="js/mrcp-device.js"></script>
+  <script src="js/location.js"></script>
+<!--<script src="js/places.js.download"></script>-->
+
+<!--<link rel="stylesheet" href="css/index.css">-->
+
   <body>
     <a-scene embedded arjs='debugUIEnabled: false;detectionMode: mono_and_matrix; matrixCodeType: 4x4;' vr-mode-ui="enabled: false">
-      <a-box position='0 0 0' material='opacity: 0.5; side: double;color:green;'></a-box>
-      <a-camera gps-camera="minDistance: 40;" rotation-reader></a-camera>
+      <a-box scale='10 10 10' gps-entity-place='latitude: 36.844793; longitude: -119.740952; altitude: 0' color='blue'></a-box>
+      <a-box scale='1 1 1' gps-entity-place='latitude: 36.8484952; longitude: -119.7410085; altitude: 0' color='red'></a-box>
+    <a-marker>
+      <a-box scale='10 10 10' color='red'></a-box>
+    </a-marker>
+      <a-camera gps-camera rotation-reader position-reader></a-camera>
     </a-scene>
   </body>
 </html>
