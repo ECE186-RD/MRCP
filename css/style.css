@@ -7,9 +7,10 @@ div.panel{
     background-color: rgb(16, 147, 198, 0.8);
     color: #F8F5F6;
     width: 300px;
-    height:300px;
+    min-height: 300px;
     text-align: center;
     padding: 20px;
+    padding-top: 10px;
     font-size: 16px;
     z-index: 1;
     display: none;
@@ -17,11 +18,27 @@ div.panel{
     position: absolute;
   }
 
+  div.panel.show{
+      display: flex;
+  }
+
+  input[type=time]{
+      height: 50px;
+      width: 250px;
+      margin: 10px;
+      background-color: #F8F5F6;
+      border-radius: 20px;
+      border-color: rgb(34, 101, 140);
+      border: 10px;
+      text-align: center;
+      font-size: 20px;
+  }
+
   a-scene{
       z-index: -999;
   }
 
-  div#device_status{
+  #device_status{
       background-color: #ff5757;
       border-radius: 50%;
       border: 2px solid white;
@@ -31,6 +48,10 @@ div.panel{
       right: 25px;
       top: 25px;
       display: none;
+  }
+
+  #meter_connected, #meter_started{
+    display: none;
   }
 
   div.section{

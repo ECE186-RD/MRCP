@@ -4,6 +4,7 @@
 <script src="js/arjs.min.js"></script>
 <script src="js/arelements.js"></script>
 <script src="js/mrcp-device.js"></script>
+<script src="js/input.js"></script>
 <link rel="stylesheet" type="text/css" href="css/style.css">
   <body>
     <a-scene embedded arjs='debugUIEnabled: false;detectionMode: mono_and_matrix; matrixCodeType: 4x4;' vr-mode-ui="enabled: false">
@@ -22,19 +23,20 @@
       </a-marker>
       <a-marker emitevents="true" type='barcode' value='2'>
         <a-entity panel class="screen">
-          <div id="test-panel" class="panel" data-offset="0 0 0">
-              <h1 style="text-align: center;margin:0px">Smart Meter</h1>
-              <hr style="width:100%;border-top: 1px solid">
-              <div id="meter_status"></div>
-              <div id="meter_connected">
-                <h2>Rate: $<span id="meter_rate">1.00</span> / hour</h2>
-                <h2>Duration: <span id="meter_duration">2</span> hours</h2>
+          <div id="test-panel" class="panel show" data-offset="0 0 0">
+            <h1 style="text-align: center;margin:0px">Smart Meter</h1>
+            <hr style="width:100%;border-top: 1px solid">
+            <div id="meter_status"></div>
+            <div id="meter_connected">
+              <h2>Rate: $<span id="meter_rate">1.00</span> / hour</h2>
+              <div id="meter_started">
+                <h2>Duration: <span id="tmeter_duration">2</span> hours</h2>
                 <h2>Total: $<span id="meter_total">2.00</span></h2>
-                <input type="time" id="meter_time">
               </div>
-              <div class="section">
-                <button id="meter_button" style="font-size: 48px" onclick="mrcp_meter.buttonPress(this);">CONNECT</button>
-              </div>
+            </div>
+            <div class="section">
+              <button id="meter_button" style="font-size: 48px" onclick="mrcp_meter.buttonPress(this);">CONNECT</button>
+            </div>
           </div>
         </a-entity>
         <a-box position='0 0 0' material='opacity: 0.5; side: double;color:pink;'></a-box>
