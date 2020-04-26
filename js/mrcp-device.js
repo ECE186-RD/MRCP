@@ -61,7 +61,6 @@ class MRCPMeter{
     this.connected = document.querySelector('#meter_connected');
     this.connected.style.display = "none";
     this.time_started = false;
-    console.log(this);
   }
 
   async BLEconnect(){
@@ -69,23 +68,25 @@ class MRCPMeter{
       let decoder = new TextDecoder("utf-8");
       let rx_value = decoder.decode(event.target.value);
       console.log("Recieved Value: " + rx_value);
-      if(rx_value == "START"){
+      if(rx_value == "ACK_START"){
         this.time_started = true;
         this.startTimer();
         var started = document.querySelector('#meter_started');
         started.style.display = "block";
         this.button.style.display = 'none';
-      }else if(rx_value == "STOP"){
+      }else if(rx_value == "REQ_STOP"){
         this.time_started = false;
         var started = document.querySelector('#meter_started');
         clearInterval(this.timer_interval);
         this.button.innerHTML = "Start";
         this.button.style.display = 'block';
+        this.writeCharacteristic(this, "ACK_STOP");
       }else{
         this.rate.innerHTML = parseFloat(rx_value).toFixed(2);
         var connected = document.querySelector('#meter_connected');
         connected.style.display = "block";
         this.button.innerHTML = "Start";
+        this.writeCharacteristic(this, "ACK_RATE");
       }
   };
     try {
@@ -118,8 +119,7 @@ class MRCPMeter{
 
   async writeCharacteristic(mrcp, value){
     let encoder = new TextEncoder('utf-8');
-    console.log('Writing Characteristic...');
-    mrcp.button.innerHTML = 'Loading';
+    console.log('Writing Characteristic: ' + value);
     value = encoder.encode(value.toString());
     await mrcp.characteristic_tx.writeValue(value);
   }
@@ -129,14 +129,16 @@ class MRCPMeter{
     if(this.device == null){
       this.button.innerHTML = "Connecting";
       await this.BLEconnect();
-      setTimeout(this.writeCharacteristic, 1000, this, "REQUEST_RATE");
+      setTimeout(this.writeCharacteristic, 100, this, "REQ_RATE");
+      this.button.innerHTML = 'Loading';
       
     }else{
       
       if(this.time_started){
 
       }else{
-        this.writeCharacteristic(this, "START");
+        this.writeCharacteristic(this, "REQ_START");
+        this.button.innerHTML = 'Loading';
       }
     }
   }
