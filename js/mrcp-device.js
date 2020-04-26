@@ -69,7 +69,6 @@ class MRCPMeter{
       let decoder = new TextDecoder("utf-8");
       let rx_value = decoder.decode(event.target.value);
       console.log("Recieved Value: " + rx_value);
-
       if(rx_value == "START"){
         this.time_started = true;
         this.startTimer();
@@ -84,6 +83,9 @@ class MRCPMeter{
         this.button.style.display = 'block';
       }else{
         this.rate.innerHTML = parseFloat(rx_value).toFixed(2);
+        var connected = document.querySelector('#meter_connected');
+        connected.style.display = "block";
+        this.button.innerHTML = "Start";
       }
   };
     try {
@@ -114,26 +116,28 @@ class MRCPMeter{
   }
 
 
+  async writeCharacteristic(mrcp, value){
+    let encoder = new TextEncoder('utf-8');
+    console.log('Writing Characteristic...');
+    mrcp.button.innerHTML = 'Loading';
+    value = encoder.encode(value.toString());
+    await mrcp.characteristic_tx.writeValue(value);
+  }
+
   async buttonPress(button){
     this.button = button;
     if(this.device == null){
       this.button.innerHTML = "Connecting";
       await this.BLEconnect();
-
-      var connected = document.querySelector('#meter_connected');
-      connected.style.display = "block";
-      this.button.innerHTML = "Start";
+      setTimeout(this.writeCharacteristic, 1000, this, "REQUEST_RATE");
+      
     }else{
-      let encoder = new TextEncoder('utf-8');
-      let sendMsg = "";
+      
       if(this.time_started){
-        sendMsg = encoder.encode(('STOP').toString());
+
       }else{
-        sendMsg = encoder.encode(('START').toString());
+        this.writeCharacteristic(this, "START");
       }
-      console.log('Writing Characteristic...');
-      this.button.innerHTML = 'Loading';
-      await this.characteristic_tx.writeValue(sendMsg);
     }
   }
 
