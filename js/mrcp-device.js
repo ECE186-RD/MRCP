@@ -1,14 +1,24 @@
-class MRCPLock{
+class MRCPNode{
+
+  constructor(){
+    this.device_authenticated = false;
+    this.device_token = 'invalid';
+  }
+
+  onRead(){
+    console.log("Recieved Value: " + JSON.stringify(this.rx_doc));
+    if(this.rx_doc['type'] == 'SYN_ACK'){
+      this.authenticateDevice(this.rx_doc);
+    }
+  }
 
   async BLEconnect(){
     var callback = (event)=>{
-      var status = document.querySelector('#device_status');
-      status.style.display = 'block';
       let decoder = new TextDecoder("utf-8");
-      this.led_on = parseInt(decoder.decode(event.target.value)) == 1;
-      this.button.innerHTML = this.led_on ? 'UNLOCK' : 'LOCK';
-      status.style.backgroundColor = this.led_on ? '#39cc39' : '#ff5757';
-  };
+      let rx_value = decoder.decode(event.target.value);
+      this.rx_doc = JSON.parse(rx_value);
+      this.onRead(this.rx_doc);
+    };
     try {
       console.log('Requesting Bluetooth Device...');
       this.device  = await navigator.bluetooth.requestDevice({
@@ -29,32 +39,84 @@ class MRCPLock{
       this.characteristic_rx.addEventListener('characteristicvaluechanged', callback);
       this.characteristic_rx.startNotifications();
       console.log('Done');
+
     } catch(error) {
       console.log(error);
     }
     return Promise.resolve();
   }
 
+  authenticateDevice(doc){
+    firebase.database().ref('users/' + firebase.auth().currentUser.uid).set({
+      authToken: 'invalid'
+    });
+    firebase.database().ref('/users/' + doc['uid'] + '/authToken').once('value').then(function(snapshot) {
+      this.device_token = snapshot.val();
+      if(this.device_token != 'invalid' && this.device_token == doc['token']){
+        console.log("Device Authenticated");
+        this.device_authenticated = true;
+        this.writeCharacteristic(this, JSON.stringify({'type':'ACK'}));
+      }else{
+        console.log("Device Authentication Failed");
+      }
+    }.bind(this));
+  }
+
+
+  async writeCharacteristic(node, value){
+    let encoder = new TextEncoder('utf-8');
+    console.log('Writing Characteristic: ' + value);
+    value = encoder.encode(value.toString());
+    await node.characteristic_tx.writeValue(value);
+  }
 
   async buttonPress(button){
     this.button = button;
     if(this.device == null){
       this.button.innerHTML = "Connecting";
       await this.BLEconnect();
-    }else{
-      let encoder = new TextEncoder('utf-8');
-      let sendMsg = encoder.encode((this.led_on ? 'OFF' : 'ON').toString());
-      console.log('Writing Characteristic...');
+      var token = uuidv1();
+      firebase.database().ref('users/' + firebase.auth().currentUser.uid).set({
+        authToken: token
+      });
+      setTimeout(this.writeCharacteristic, 100, this, JSON.stringify({'type':'SYN', 'token':token, 'uid': firebase.auth().currentUser.uid}));
       this.button.innerHTML = 'Loading';
-      await this.characteristic_tx.writeValue(sendMsg);
+    }
+  }
+}
+
+class MRCPLock extends MRCPNode{
+
+  constructor(){
+    super();
+    this.status = document.querySelector('#device_status');
+  }
+
+  onRead(){
+    super.onRead();
+    if(this.device_authenticated){
+      if(this.rx_doc['type'] == "UI_INFO" || this.rx_doc['type'] == "LED_STATE" ){
+        this.status.style.display = 'block';
+        this.led_on = this.rx_doc['led_state'] == 'on';
+        this.button.innerHTML = this.led_on ? 'UNLOCK' : 'LOCK';
+        this.status.style.backgroundColor = this.led_on ? '#39cc39' : '#ff5757';
+      }
+    }
+  }
+
+  async buttonPress(button){
+    super.buttonPress(button);
+    if(this.device){
+      this.writeCharacteristic(this, JSON.stringify({'type': 'LED_CMD', 'led_cmd': (this.led_on ? 'off' : 'on')}));
     }
   }
 
 }
 
-class MRCPMeter{
+class MRCPMeter extends MRCPNode{
 
   constructor(){
+    super();
     this.rate = document.querySelector('#meter_rate');
     this.duration = document.querySelector('#meter_duration');
     this.total = document.querySelector('#meter_total');
@@ -63,93 +125,55 @@ class MRCPMeter{
     this.time_started = false;
   }
 
-  async BLEconnect(){
-    var callback = (event)=>{
-      let decoder = new TextDecoder("utf-8");
-      let rx_value = decoder.decode(event.target.value);
-      console.log("Recieved Value: " + rx_value);
-      if(rx_value == "ACK_START"){
+  onRead(){
+    super.onRead();
+    if(this.device_authenticated){
+      if(this.rx_doc['type'] == "UI_INFO"){
+        this.rate.innerHTML = this.rx_doc['rate'].toFixed(2);
+        var connected = document.querySelector('#meter_connected');
+        connected.style.display = "block";
+        this.button.innerHTML = "Start";
+      }else if(this.rx_doc['type'] == "START_ACK"){
         this.time_started = true;
         this.startTimer();
         var started = document.querySelector('#meter_started');
         started.style.display = "block";
         this.button.style.display = 'none';
-      }else if(rx_value == "REQ_STOP"){
+      }else if(this.rx_doc['type'] == "STOP"){
         this.time_started = false;
         var started = document.querySelector('#meter_started');
         clearInterval(this.timer_interval);
+        this.UpdateTimer(this, this.rx_doc['duration']);
         this.button.innerHTML = "Start";
         this.button.style.display = 'block';
-        this.writeCharacteristic(this, "ACK_STOP");
-      }else{
-        this.rate.innerHTML = parseFloat(rx_value).toFixed(2);
-        var connected = document.querySelector('#meter_connected');
-        connected.style.display = "block";
-        this.button.innerHTML = "Start";
-        this.writeCharacteristic(this, "ACK_RATE");
+        this.writeCharacteristic(this, JSON.stringify({'type':'STOP_ACK'}));
+      }else if(this.rx_doc['type'] == "ERROR"){
+        this.button.innerHTML = "Connect";
+        this.device = null;
       }
-  };
-    try {
-      console.log('Requesting Bluetooth Device...');
-      this.device  = await navigator.bluetooth.requestDevice({
-          filters: [{services: ['6e400001-b5a3-f393-e0a9-e50e24dcca9e']}]});
-          //acceptAllDevices: true, optionalServices: ['6e400001-b5a3-f393-e0a9-e50e24dcca9e']});
-    
-      console.log('Connecting to GATT Server...');
-      const server = await this.device.gatt.connect();
-    
-      console.log('Getting Service...');
-      const service = await server.getPrimaryService('6e400001-b5a3-f393-e0a9-e50e24dcca9e');
-    
-      console.log('Getting Characteristic TX...');
-      this.characteristic_tx = await service.getCharacteristic('6e400002-b5a3-f393-e0a9-e50e24dcca9e');
-
-      console.log('Getting Characteristic RX...');
-      this.characteristic_rx = await service.getCharacteristic('6e400003-b5a3-f393-e0a9-e50e24dcca9e');
-      this.characteristic_rx.addEventListener('characteristicvaluechanged', callback);
-      this.characteristic_rx.startNotifications();
-      console.log('Done');
-
-    } catch(error) {
-      console.log(error);
     }
-    return Promise.resolve();
-  }
-
-
-  async writeCharacteristic(mrcp, value){
-    let encoder = new TextEncoder('utf-8');
-    console.log('Writing Characteristic: ' + value);
-    value = encoder.encode(value.toString());
-    await mrcp.characteristic_tx.writeValue(value);
   }
 
   async buttonPress(button){
-    this.button = button;
-    if(this.device == null){
-      this.button.innerHTML = "Connecting";
-      await this.BLEconnect();
-      setTimeout(this.writeCharacteristic, 100, this, "REQ_RATE");
-      this.button.innerHTML = 'Loading';
-      
-    }else{
-      
-      if(this.time_started){
-
-      }else{
-        this.writeCharacteristic(this, "REQ_START");
+    super.buttonPress(button);
+    if(this.device){
+      if(!this.time_started){
+        this.writeCharacteristic(this, JSON.stringify({'type':'START'}));
         this.button.innerHTML = 'Loading';
       }
     }
   }
 
-  UpdateTimer(meter){
+  UpdateTimer(meter, overrideDiff = null){
     meter.updatedTime = new Date().getTime();
     var difference = 0;
     if (meter.savedTime){
       difference = (meter.updatedTime - meter.startTime) + meter.savedTime;
     } else {
       difference =  meter.updatedTime - meter.startTime;
+    }
+    if(overrideDiff){
+      difference = overrideDiff;
     }
     var hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     var minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
@@ -224,4 +248,3 @@ window.onload = ()=>{
   mrcp_meter = new MRCPMeter();
   mrcp_vending_machine = new MRCPVendingMachine();
 };
-

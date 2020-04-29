@@ -1,0 +1,84 @@
+<!doctype HTML>
+<html>
+<script src="js/aframe.min.js"></script>
+<script src="js/arjs.min.js"></script>
+<script src="js/arelements.js"></script>
+<script src="js/mrcp-device.js"></script>
+<script src="js/input.js"></script>
+<script src="https://www.gstatic.com/firebasejs/7.14.2/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/7.14.2/firebase-analytics.js"></script>
+<script src="https://www.gstatic.com/firebasejs/7.14.2/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/7.14.2/firebase-database.js"></script>
+<script src="js/firebase_init.js"></script>
+<script src="js/uuid-browser.js"></script>
+<link rel="stylesheet" type="text/css" href="css/style.css">
+  <body>
+    <a-scene embedded arjs='debugUIEnabled: false;detectionMode: mono_and_matrix; matrixCodeType: 4x4;' vr-mode-ui="enabled: false">
+      <a-marker emitevents="true" type='barcode' value='2'>
+        <a-entity panel class="screen">
+          <div id="test-panel" class="panel show" data-offset="0 0 0">
+            <h1 style="text-align: center;margin:0px">Smart Meter</h1>
+            <hr style="width:100%;border-top: 1px solid">
+            <div id="meter_status"></div>
+            <div id="meter_connected">
+              <h2>Rate: $<span id="meter_rate">0.00</span> / hour</h2>
+              <div id="meter_started">
+                <h2>Duration: <span id="meter_duration">00:00:00</span></h2>
+                <h2>Total: $<span id="meter_total">0.00</span></h2>
+              </div>
+            </div>
+            <div class="section">
+              <button id="meter_button" style="font-size: 48px" onclick="mrcp_meter.buttonPress(this);">CONNECT</button>
+            </div>
+          </div>
+        </a-entity>
+        <a-box position='0 0 0' material='opacity: 0.5; side: double;color:pink;'></a-box>
+    </a-marker>
+    <a-marker emitevents="true" type='barcode' value='0'>
+      <a-entity panel class="screen">
+        <div id="test-panel" class="panel" data-offset="0 0 0">
+            <h1 style="text-align: center;margin:0px">Smart Lock</h1>
+            <hr style="width:100%;border-top: 1px solid">
+            <div id="device_status"></div>
+            <div class="section">
+              <button id="device_button" style="font-size: 48px" onclick="mrcp_lock.buttonPress(this);">CONNECT</button>
+            </div>
+        </div>
+      </a-entity>
+      <a-box position='0 0 0' material='opacity: 0.5; side: double;color:pink;'></a-box>
+  </a-marker>
+      <a-marker type='barcode' value='1'>
+          <a-entity panel class="screen">
+              <div id="test-panel" class="panel" data-offset="0 0 0">
+                  <h1 style="text-align: center;margin:0px">Vending Machine</h1>
+                  <hr style="width:100%;border-top: 1px solid">
+                  <div class="section">
+                    <button id="vending_machine_button" style="font-size: 48px" onclick="mrcp_vending_machine.buttonPress();">CONNECT</button>
+                  </div>
+              </div>
+            </a-entity>
+          <a-entity panel class="screen">
+            <button class="anchored single-button on-connect " data-offset="1 0 -1.5"></button>
+            <button class="anchored single-button on-connect " data-offset="2 0 -1.5"></button>
+            <button class="anchored single-button on-connect " data-offset="3 0 -1.5"></button>
+            <button class="anchored single-button on-connect " data-offset="4 0 -1.5"></button>
+            <button class="anchored single-button on-connect " data-offset="1 0 -0.5"></button>
+            <button class="anchored single-button on-connect " data-offset="2 0 -0.5"></button>
+            <button class="anchored single-button on-connect " data-offset="3 0 -0.5"></button>
+            <button class="anchored single-button on-connect " data-offset="4 0 -0.5"></button>
+            <button class="anchored single-button on-connect " data-offset="1 0 0.5"></button>
+            <button class="anchored single-button on-connect " data-offset="2 0 0.5"></button>
+            <button class="anchored single-button on-connect " data-offset="3 0 0.5"></button>
+            <button class="anchored single-button on-connect " data-offset="4 0 0.5"></button>
+            <button class="anchored single-button on-connect " data-offset="1 0 1.5"></button>
+            <button class="anchored single-button on-connect " data-offset="2 0 1.5"></button>
+            <button class="anchored single-button on-connect " data-offset="3 0 1.5"></button>
+            <button class="anchored single-button on-connect " data-offset="4 0 1.5"></button>
+          </a-entity>
+          <a-box position='0 0 0' material='opacity: 0.5; side: double;color:green;'></a-box>
+      </a-marker>
+      <!--<a-entity id="mouseCursor" cursor="rayOrigin: mouse;mouseCursorStylesEnabled: false" raycaster="objects: .screen"></a-entity>-->
+      <a-entity id="camera" camera></a-entity>
+    </a-scene>
+  </body>
+</html>
