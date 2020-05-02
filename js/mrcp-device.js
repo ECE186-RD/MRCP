@@ -2,6 +2,7 @@ class MRCPNode{
 
   constructor(){
     this.device_authenticated = false;
+    this.bypass_security = true;
     this.device_token = 'invalid';
   }
 
@@ -47,19 +48,25 @@ class MRCPNode{
   }
 
   authenticateDevice(doc){
-    firebase.database().ref('users/' + firebase.auth().currentUser.uid).set({
-      authToken: 'invalid'
-    });
-    firebase.database().ref('/users/' + doc['uid'] + '/authToken').once('value').then(function(snapshot) {
-      this.device_token = snapshot.val();
-      if(this.device_token != 'invalid' && this.device_token == doc['token']){
-        console.log("Device Authenticated");
-        this.device_authenticated = true;
-        this.writeCharacteristic(this, JSON.stringify({'type':'ACK'}));
-      }else{
-        console.log("Device Authentication Failed");
-      }
-    }.bind(this));
+    if(this.bypass_security){
+      console.log("Device Authenticated");
+      this.device_authenticated = true;
+      this.writeCharacteristic(this, JSON.stringify({'type':'ACK'}));
+    }else{
+      firebase.database().ref('users/' + firebase.auth().currentUser.uid).set({
+        authToken: 'invalid'
+      });
+      firebase.database().ref('/users/' + doc['uid'] + '/authToken').once('value').then(function(snapshot) {
+        this.device_token = snapshot.val();
+        if(this.device_token != 'invalid' && this.device_token == doc['token']){
+          console.log("Device Authenticated");
+          this.device_authenticated = true;
+          this.writeCharacteristic(this, JSON.stringify({'type':'ACK'}));
+        }else{
+          console.log("Device Authentication Failed");
+        }
+      }.bind(this));
+    }
   }
 
 
@@ -106,7 +113,7 @@ class MRCPLock extends MRCPNode{
 
   async buttonPress(button){
     super.buttonPress(button);
-    if(this.device){
+    if(this.device && this.device_authenticated){
       this.writeCharacteristic(this, JSON.stringify({'type': 'LED_CMD', 'led_cmd': (this.led_on ? 'off' : 'on')}));
     }
   }
