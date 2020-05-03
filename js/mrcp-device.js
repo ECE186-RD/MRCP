@@ -4,6 +4,7 @@ class MRCPNode{
     this.device_authenticated = false;
     this.bypass_security = true;
     this.device_token = 'invalid';
+    this.rx_str = '';
   }
 
   onRead(){
@@ -17,9 +18,12 @@ class MRCPNode{
     var callback = (event)=>{
       let decoder = new TextDecoder("utf-8");
       let rx_value = decoder.decode(event.target.value);
-      console.log(rx_value);
-      this.rx_doc = JSON.parse(rx_value);
-      this.onRead(this.rx_doc);
+      this.rx_str += rx_value;
+      if(this.rx_str[this.rx_str.length - 1] == '}'){
+        this.rx_doc = JSON.parse(this.rx_str);
+        this.rx_str = "";
+        this.onRead(this.rx_doc);
+      }
     };
     try {
       console.log('Requesting Bluetooth Device...');
