@@ -18,6 +18,7 @@ class MRCPNode{
       let decoder = new TextDecoder("utf-8");
       let rx_value = decoder.decode(event.target.value);
       this.rx_doc = JSON.parse(rx_value);
+      console.log(rx_value);
       this.onRead(this.rx_doc);
     };
     try {
