@@ -20,6 +20,7 @@ class MRCPNode{
       let rx_value = decoder.decode(event.target.value);
       this.rx_str += rx_value;
       if(this.rx_str[this.rx_str.length - 1] == '}'){
+        console.log(this.rx_str)
         this.rx_doc = JSON.parse(this.rx_str);
         this.rx_str = "";
         this.onRead(this.rx_doc);
